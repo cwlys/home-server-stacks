@@ -1,0 +1,102 @@
+services:
+
+  # ----- 01. Teedy Application -----
+  teedy-server:
+    container_name: teddy
+    image: sismics/docs:v1.11
+    restart: unless-stopped
+    ports:
+      # Map internal port to host
+      - 9080:8080
+    environment:
+      - TZ=Asia/Taipei
+      - DOCS_BASE_URL=https://teddy.cwlys.com
+      - DOCS_ADMIN_EMAIL_INIT=${teddy_ADMIN_EMAIL}
+      - DATABASE_URL=jdbc:postgresql://teedy-db:5432/teedy
+      - DATABASE_USER=${teddy_DB_USER}
+      - DATABASE_PASSWORD=${teddy_DB_PASSWORD}
+      - DATABASE_POOL_SIZE="10"
+    volumes:
+      - /storage/teddy/data:/data
+    networks:
+      npm_network:
+        ipv4_address: 10.112.0.70
+    depends_on:
+      - teedy-db
+      
+  # ----- 02. DB for Teedy -----
+  teedy-db:
+    container_name: teddy_db
+    image: postgres:13.1-alpine
+    restart: unless-stopped
+    expose:
+      - 5432
+    environment:
+      - TZ=Asia/Taipei
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_DB=teedy
+    volumes:
+      - /docker/teddy/db:/var/lib/postgresql/data
+    networks:
+      npm_network:
+        ipv4_address: 10.112.0.71
+
+  # ----- 03. karakeep web -----
+  wep:
+    container_name: karakeep
+    image: ghcr.io/karakeep-app/karakeep:${KARAKEEP_VERSION:-release}
+    restart: unless-stopped
+    networks:
+      npm_network:
+        ipv4_address: 10.112.0.30
+    volumes:
+      # By default, the data is stored in a docker volume called "data".
+      # If you want to mount a custom directory, change the volume mapping to:
+      # - /path/to/your/directory:/data
+      - /storage/karakeep/data:/data
+    ports:
+      - 3005:3000
+    environment:
+      MEILI_ADDR: http://meilisearch:7700
+      BROWSER_WEB_URL: http://chrome:9222
+      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET}
+      NEXTAUTH_URL: http://172.16.8.2:3005
+      # OPENAI_API_KEY: ...
+
+      # You almost never want to change the value of the DATA_DIR variable.
+      # If you want to mount a custom directory, change the volume mapping above instead.
+      DATA_DIR: /data # DON'T CHANGE THIS
+      
+  # ----- 04. karakeep chrome -----
+  chrome:
+    container_name: chrome
+    image: gcr.io/zenika-hub/alpine-chrome:123
+    restart: unless-stopped
+    networks:
+      npm_network:
+        ipv4_address: 10.112.0.31
+    command:
+      - --no-sandbox
+      - --disable-gpu
+      - --disable-dev-shm-usage
+      - --remote-debugging-address=0.0.0.0
+      - --remote-debugging-port=9222
+      - --hide-scrollbars
+
+  # ----- 05. karakeep meilisearch -----
+  meilisearch:
+    container_name: meilisearch
+    image: getmeili/meilisearch:v1.11.1
+    restart: unless-stopped
+    networks:
+      npm_network:
+        ipv4_address: 10.112.0.32
+    environment:
+      MEILI_NO_ANALYTICS: "true"
+    volumes:
+      - /storage/karakeep/meilisearch:/meili_data
+
+networks:
+  npm_network:
+    external: true
