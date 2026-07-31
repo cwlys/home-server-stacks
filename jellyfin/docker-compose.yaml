@@ -1,0 +1,62 @@
+services:
+
+  # ----- 01. jellyfin -----
+  jellyfin:
+    image: jellyfin/jellyfin
+    container_name: jellyfin
+    networks:
+      npm_network:
+        ipv4_address: 10.112.0.80
+    user: 1000:1000
+    group_add:
+      - "993"
+    ports:
+      - 0.0.0.0:8096:8096
+    volumes:
+      - /docker/jellyfin/config:/config
+      - /docker/jellyfin/cache:/cache
+      - /storage/media:/media
+      - /docker/jellyfin/fonts:/fonts
+    devices:
+      - /dev/dri/renderD128:/dev/dri/renderD128
+      - /dev/dri/card0:/dev/dri/card0
+    restart: unless-stopped
+    environment:
+      - JELLYFIN_PublishedServerUrl=http://jf.cwlys.com
+      - TZ=Asia/Taipei
+      - JELLYFIN_FONTS_DIR=/fonts
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    #deploy:
+    #  resources:
+    #    limits:
+    #      cpus: "1"
+    #      memory: 2048M
+
+  # ----- 02. jellyseerr -----
+  jellyseerr:
+    image: ghcr.io/seerr-team/seerr:latest
+    init: true
+    networks:
+      npm_network:
+        ipv4_address: 10.112.0.81
+    container_name: seerr
+    environment:
+      - LOG_LEVEL=debug
+      - TZ=Asia/Taipei
+    ports:
+      - 5055:5055
+    volumes:
+      - /docker/jellyfin/jellyseerr:/app/config
+    healthcheck:
+      test: wget --no-verbose --tries=1 --spider
+        http://localhost:5055/api/v1/settings/public || exit 1
+      start_period: 20s
+      timeout: 3s
+      interval: 15s
+      retries: 3
+    restart: unless-stopped
+    
+networks:
+  npm_network:
+    external: true
