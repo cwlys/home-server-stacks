@@ -1,0 +1,28 @@
+services:
+  
+  vaultwarden:
+    container_name: vaultwarden
+    networks:
+      npm_network:
+        ipv4_address: 10.112.0.51
+    environment:
+      - DOMAIN=https://bw.cwlys.com
+      - INVITATIONS_ALLOWED=false
+      - SENDS_ALLOWED=false
+      - SHOW_PASSWORD_HINT=false
+      - SIGNUPS_ALLOWED=false
+      - WEB_VAULT_ENABLED=true
+      - WEBSOCKET_ENABLED=true
+      - PGID=1000
+      - PUID=1000
+    hostname: vaultwarden
+    image: vaultwarden/server:latest
+    ports:
+      - 10380:80
+    restart: always
+    volumes:
+      - /docker/vaultwarden/data:/data
+      
+networks:
+  npm_network:
+    external: true
