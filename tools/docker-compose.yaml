@@ -2,6 +2,7 @@ services:
 
   # ----- 01. clipcascade -----
   clipcascade:
+    container_name: clipcascade
     image: sathvikrao/clipcascade:latest
     ports:
       - 8880:8080 # Expose the ClipCascade server on port 8080
