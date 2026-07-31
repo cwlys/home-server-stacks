@@ -1,0 +1,46 @@
+services:
+
+  # ----- 01. clipcascade -----
+  clipcascade:
+    image: sathvikrao/clipcascade:latest
+    ports:
+      - 8880:8080 # Expose the ClipCascade server on port 8080
+    restart: always # Automatically restart the container if it stops
+    networks:
+      npm_network:
+        ipv4_address: 10.112.0.15
+    volumes:
+      - /storage/clipcascade/cc_users:/database # Persistent storage for user data
+    environment:
+      - CC_MAX_MESSAGE_SIZE_IN_MiB=1 # Maximum message size in MiB (ignored if P2P mode is enabled)
+      - CC_P2P_ENABLED=false # Enables or disables peer-to-peer(P2P) mode
+      # - CC_ALLOWED_ORIGINS=https://cc.cwlys.com  # Defines allowed CORS origins for security
+      # - CC_SIGNUP_ENABLED=false  # Enables or disables user self-registration
+
+  # ----- 02. it-tools -----
+  it-tools:
+    container_name: it-tools
+    restart: unless-stopped
+    networks:
+      npm_network:
+        ipv4_address: 10.112.0.88
+    ports:
+      - 8088:80
+    image: ghcr.io/corentinth/it-tools:latest
+
+  # ----- 03. myspeed -----
+  myspeed:
+    ports:
+      - 5216:5216
+    volumes:
+      - /docker/myspeed:/myspeed/data
+    restart: unless-stopped
+    networks:
+      npm_network:
+        ipv4_address: 10.112.0.99
+    container_name: MySpeed
+    image: germannewsmaker/myspeed
+      
+networks:
+  npm_network:
+    external: true
