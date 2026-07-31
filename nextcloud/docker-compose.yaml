@@ -1,0 +1,99 @@
+services:
+  
+  # ----- 01. nextcloud server -----
+  nextcloud:
+    container_name: nextcloud
+    image: nextcloud
+    restart: always
+    networks:
+      npm_network:
+        ipv4_address: 10.112.0.90
+    ports:
+      - 8080:80
+    links:
+      - db
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
+      - /docker/nextcloud/html:/var/www/html
+      - /docker/nextcloud/etc/hosts:/etc/hosts
+      - /storage/nextcloud/data:/var/www/html/data
+    environment:
+      - TZ=Asia/Taipei
+      - PHP_MEMORY_LIMIT=2G
+      - PHP_UPLOAD_LIMIT=10G
+      - MYSQL_PASSWORD=${DB_PASSWORD}
+      - MYSQL_DATABASE=nextcloud
+      - MYSQL_USER=${DB_USER}
+      - MYSQL_HOST=10.112.0.91
+    healthcheck:
+      test:
+        - CMD
+        - curl
+        - -f
+        - http://localhost/
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+
+  # ----- 02. nextcloud database -----
+  db:
+    container_name: mariadb
+    image: mariadb:11.4
+    restart: always
+    networks:
+      npm_network:
+        ipv4_address: 10.112.0.91
+    command: --transaction-isolation=READ-COMMITTED --log-bin=binlog --binlog-format=ROW
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
+      - /docker/nextcloud/mariadb:/var/lib/mysql
+    environment:
+      - TZ=Asia/Taipei
+      - MYSQL_ROOT_PASSWORD=${DB_ROOT_PASSWORD}
+      - MYSQL_PASSWORD=${DB_PASSWORD}
+      - MYSQL_DATABASE=nextcloud
+      - MYSQL_USER=${DB_USER}
+    healthcheck:
+      test:
+        - CMD
+        - mariadb-admin
+        - ping
+        - -h
+        - localhost
+        - -u
+        - ${DB_USER}
+        - -p${DB_PASSWORD}
+      interval: 10s # 每 10 秒檢查一次
+      timeout: 5s # 超時時間 5 秒
+      retries: 3 # 失敗 3 次後判定為 unhealthy
+      start_period: 30s # 容許容器開機初始化的時間（30秒內失敗不計入）
+
+  # ----- 03. nextcloud redis -----
+  redis:
+    container_name: redis
+    image: redis:latest
+    restart: always
+    networks:
+      npm_network:
+        ipv4_address: 10.112.0.92
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
+    expose:
+      - 6379
+    healthcheck:
+      test:
+        - CMD
+        - redis-cli
+        - ping
+      interval: 20s
+      timeout: 10s
+      retries: 5
+      start_period: 15s
+      
+networks:
+  npm_network:
+    external: true
