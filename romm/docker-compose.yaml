@@ -1,0 +1,80 @@
+services:
+
+  # ----- 01. romm server -----
+  romm:
+    image: rommapp/romm:latest
+    container_name: romm
+    restart: unless-stopped
+    networks:
+      npm_network:
+        ipv4_address: 10.112.0.150
+    environment:
+      - DB_HOST=10.112.0.151
+      - DB_NAME=romm
+      - DB_USER=${DB_USER}
+      - DB_PASSWD=${DB_PASSWORD}
+      - ROMM_AUTH_SECRET_KEY=${SECRET_KEY}
+      - IGDB_CLIENT_ID=${IGDB_ID}
+      - IGDB_CLIENT_SECRET=${IGDB_PASSWORD}
+      - SCREENSCRAPER_USER=${SS_USER}
+      - SCREENSCRAPER_PASSWORD=${SS_PASSWORD}
+      - STEAMGRIDDB_API_KEY=${STEAM_API}
+      - HASHEOUS_API_ENABLED=true
+      - PLAYMATCH_API_ENABLED=true
+      - REDIS_HOST=romm-redis
+      - REDIS_PORT=6379
+    volumes:
+      - /docker/romm/resources:/romm/resources # Resources fetched from IGDB (covers, screenshots, etc.)
+      - /docker/romm/redis:/redis-data # Cached data for background tasks
+      - /storage/games/roms:/romm/library/roms # Your game library. Check https://github.com/rommapp/romm?tab=readme-ov-file#folder-structure for more details.
+      - /docker/romm/assets:/romm/assets # Uploaded saves, states, etc.
+      - /docker/romm/config:/romm/config # Path where config.yml is stored
+    ports:
+      - 6080:8080
+    depends_on:
+      romm-db:
+        condition: service_healthy
+        restart: true
+      romm-redis:
+        condition: service_started
+
+  # ----- 02. romm database -----
+  romm-db:
+    image: mariadb:latest
+    container_name: romm-db
+    restart: unless-stopped
+    networks:
+      npm_network:
+        ipv4_address: 10.112.0.151
+    environment:
+      - MARIADB_ROOT_PASSWORD=${DB_ROOT_PASSWORD} # Use a unique, secure password
+      - MARIADB_DATABASE=romm
+      - MARIADB_USER=${DB_USER}
+      - MARIADB_PASSWORD=${DB_PASSWORD}
+    volumes:
+      - /docker/romm/mysql:/var/lib/mysql
+    healthcheck:
+      test:
+        - CMD
+        - healthcheck.sh
+        - --connect
+        - --innodb_initialized
+      start_period: 30s
+      start_interval: 10s
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ----- 03. romm redis -----
+  romm-redis:
+    image: redis:7-alpine
+    container_name: romm-redis
+    restart: unless-stopped
+    networks:
+      npm_network:
+        ipv4_address: 10.112.0.152
+    volumes:
+      - /docker/romm/redis:/data
+networks:
+  npm_network:
+    external: true
