@@ -1,0 +1,117 @@
+services:
+  
+  # ----- 01. nginx proxy manager -----
+  nginxproxymanager:
+    image: jc21/nginx-proxy-manager:latest
+    container_name: npm
+    restart: unless-stopped
+    networks:
+      npm_network:
+        ipv4_address: 10.112.0.2
+    environment:
+      TZ: Asia/Taipei
+      DB_MYSQL_HOST: npmdb
+      DB_MYSQL_PORT: 3306
+      DB_MYSQL_USER: ${DB_USER}
+      DB_MYSQL_PASSWORD: ${DB_PASSWORD}
+      DB_MYSQL_NAME: npm
+    ports:
+      - 80:80
+      - 81:81
+      - 443:443
+      #- 853:853
+    volumes:
+      - /docker/npm/data:/data
+      - /docker/npm/letsencrypt:/etc/letsencrypt
+      - /docker/npm/_hsts.conf:/app/templates/_hsts.conf:ro
+    depends_on:
+      - npmdb
+    links:
+      - npmdb
+  
+  # ----- 02. nginx proxy manager database -----
+  npmdb:
+    image: jc21/mariadb-aria:latest
+    container_name: npm_mariadb
+    restart: unless-stopped
+    networks:
+      npm_network:
+        ipv4_address: 10.112.0.3
+    environment:
+      TZ: Asia/Taipei
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      MYSQL_DATABASE: npm
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MARIADB_AUTO_UPGRADE: "1"
+    volumes:
+      - /docker/npm/mysql:/var/lib/mysql
+
+  # ----- 03. adguard home -----
+  adguard:
+    image: adguard/adguardhome:latest
+    container_name: adguard
+    restart: unless-stopped
+    networks:
+      npm_network:
+        ipv4_address: 10.112.0.4
+    environment:
+      - TZ=Asia/Taipei
+    #expose:
+    #  - "443"
+    #  - "53"
+    #  - "853"
+    cap_add:
+      - NET_ADMIN
+    ports:
+      #- 8480:80
+      - 8443:443
+      - 53:53/tcp
+      - 53:53/udp
+      #- 3001:3000
+    volumes:
+      - /docker/adguard/work:/opt/adguardhome/work
+      - /docker/adguard/conf:/opt/adguardhome/conf
+      - /docker/npm/letsencrypt:/opt/adguardhome/letsencrypt
+    labels:
+      #homepage
+      - homepage.group=Home LAB
+      - homepage.name=AdGuard Home
+      - homepage.icon=si-adguard-#68BC71
+      - homepage.href=https://dns.cwlys.com
+      - homepage.description=Outside DNS
+      - homepage.widget.type=adguard
+      - homepage.widget.url= https://172.16.8.2:8443
+      - homepage.widget.username=${ADH_ACCOUNT}
+      - homepage.widget.password=${ADH_PASSWORD}
+
+  # ----- 04. cloudflare -----
+  cloudflare:
+    container_name: cloudflare
+    image: cloudflare/cloudflared:latest
+    restart: always
+    networks:
+      npm_network:
+        ipv4_address: 10.112.0.5
+    command:
+      - tunnel
+      - --protocol
+      - http2
+      - run
+      - --token
+      - ${CF_TOKEN}
+    environment:
+      - TZ=Asia/Taipei
+    labels:
+      - com.centurylinklabs.watchtower.enable=true
+      - homepage.group=Home LAB
+      - homepage.name=cloudflare
+      - homepage.icon=si-cloudflare-#F38020
+      - homepage.description=Cloudflare tunnel
+      - homepage.widget.type=cloudflared
+      - homepage.widget.accountid=${CF_ACCOUNTID}
+      - homepage.widget.tunnelid=${CF_TUNNELID}
+      - homepage.widget.key=${CF_APIKEY}
+networks:
+  npm_network:
+    external: true
