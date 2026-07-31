@@ -1,0 +1,38 @@
+services:
+
+  # ----- 01. suwayomi -----
+  suwayomi:
+    container_name: suwayomi
+    image: ghcr.io/suwayomi/tachidesk:latest
+    networks:
+      npm_network:
+        ipv4_address: 10.112.0.60
+    environment:
+      - PGID=1000
+      - PUID=1000
+      - TZ=Asia/Taipei
+      - FLARESOLVERR_ENABLED=true
+      - FLARESOLVERR_URL=http://10.112.0.61:8191
+    volumes:
+      - /docker/suwayomi/data:/home/suwayomi/.local/share/Tachidesk
+      - /storage/suwayomi/downloads:/home/suwayomi/.local/share/Tachidesk/downloads
+    ports:
+      - 4567:4567
+    restart: on-failure:3
+
+  # ----- 01. suwayomi flaresolverr -----
+  flaresolverr:
+    image: ghcr.io/flaresolverr/flaresolverr:latest
+    container_name: flaresolverr
+    networks:
+      npm_network:
+        ipv4_address: 10.112.0.61
+    environment:
+      - TZ=Asia/Taipei # Use TZ database name from https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
+    ports:
+      - 8191:8191
+    restart: unless-stopped
+    
+networks:
+  npm_network:
+    external: true
