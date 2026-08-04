@@ -60,9 +60,9 @@ services:
     container_name: tugtainer
     environment:
       - TZ=Asia/Taipei
+      - AGENT_SECRET=${SECRET}
       - TELEGRAM_BOT_TOKEN=${TELE_TOKEN}
       - TELEGRAM_CHAT_ID=${TELE_ID}
-      - AGENT_SECRET=${SECRET}
     networks:
       npm_network:
         ipv4_address: 10.112.0.9
