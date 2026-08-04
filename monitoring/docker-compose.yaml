@@ -62,7 +62,7 @@ services:
       - TZ=Asia/Taipei
       - TUGTAINER_HOST_NAME=HomeSer_Tug
       - AGENT_SECRET=${SECRET}
-      - NOTIFICATION_URLS=tgram://8928802877:AAGwjf2ZX6gsAmn8HHUbX8pX8mnU4qtycOM/1161371954
+      #- NOTIFICATION_URLS=tgram://8928802877:AAGwjf2ZX6gsAmn8HHUbX8pX8mnU4qtycOM/1161371954
     networks:
       npm_network:
         ipv4_address: 10.112.0.9
