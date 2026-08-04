@@ -66,6 +66,9 @@ services:
     networks:
       npm_network:
         ipv4_address: 10.112.0.9
+    dns:
+      - 8.8.8.8
+      - 1.1.1.1
     restart: unless-stopped
     volumes:
       - /docker/tugtainer/tugtainer_data:/tugtainer
