@@ -39,7 +39,7 @@ services:
 
   # ----- 02. nextcloud database -----
   db:
-    container_name: mariadb
+    container_name: nc-mariadb
     image: mariadb:11.4
     restart: always
     networks:
