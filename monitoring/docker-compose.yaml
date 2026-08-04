@@ -52,6 +52,26 @@ services:
     environment:
       - TZ=Asia/Taipei
       - GLANCES_OPT=-w
+      
+  #----- 04. tugtainer -----
+  tugtainer:
+    ports:
+      - 9412:80
+    container_name: tugtainer
+    environment:
+      - AGENT_SECRET=${SECRET}
+    networks:
+      npm_network:
+        ipv4_address: 10.112.0.9
+    restart: unless-stopped
+    volumes:
+      - /docker/tugtainer/tugtainer_data:/tugtainer
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    image: ghcr.io/quenary/tugtainer:1
+volumes:
+  tugtainer_data:
+    external: true
+    name: tugtainer_data
 
 networks:
   npm_network:
