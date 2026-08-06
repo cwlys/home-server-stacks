@@ -74,10 +74,6 @@ services:
       - /docker/tugtainer/tugtainer_data:/tugtainer
       - /var/run/docker.sock:/var/run/docker.sock:ro
     image: ghcr.io/quenary/tugtainer:1
-volumes:
-  tugtainer_data:
-    external: true
-    name: tugtainer_data
 
   #----- 05. beszel server -----
   beszel:
