@@ -63,7 +63,7 @@ services:
     container_name: beszel
     restart: unless-stopped
     environment:
-      APP_URL: http://localhost:8090
+      APP_URL: http://172.16.8.2:8090
     networks:
       npm_network:
         ipv4_address: 10.112.0.12
