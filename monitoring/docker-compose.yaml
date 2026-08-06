@@ -34,26 +34,8 @@ services:
       - 9999:8080
     labels:
       - com.centurylinklabs.watchtower.enable=true
-
-  #----- 03. glances -----
-  glances:
-    image: nicolargo/glances:latest-full
-    container_name: glances
-    restart: always
-    networks:
-      npm_network:
-        ipv4_address: 10.112.0.8
-    ports:
-      - 61208-61209:61208-61209
-    pid: host
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-      - /:/rootfs:ro
-    environment:
-      - TZ=Asia/Taipei
-      - GLANCES_OPT=-w
       
-  #----- 04. tugtainer -----
+  #----- 03. tugtainer -----
   tugtainer:
     ports:
       - 9412:80
@@ -75,7 +57,7 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock:ro
     image: ghcr.io/quenary/tugtainer:1
 
-  #----- 05. beszel server -----
+  #----- 04. beszel server -----
   beszel:
     image: henrygd/beszel:latest
     container_name: beszel
@@ -96,7 +78,7 @@ services:
     #   start_period: 10s
     #   timeout: 5s
 
-  #----- 06. beszel-agent -----
+  #----- 05. beszel-agent -----
   beszel-agent:
     image: henrygd/beszel-agent:latest
     container_name: beszel-agent
