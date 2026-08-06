@@ -109,7 +109,7 @@ services:
       LISTEN: 45876
       KEY: ${BESZEL_KEY}
       TOKEN: ${BESZEL_TOKEN}
-      HUB_URL: http://127.0.0.1:8090
+      HUB_URL: http://beszel:8090
     # healthcheck:
     #   test: ['CMD', '/agent', 'health']
     #   interval: 120s
