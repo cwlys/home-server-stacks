@@ -86,11 +86,14 @@ volumes:
     restart: unless-stopped
     environment:
       APP_URL: http://localhost:8090
+    networks:
+      npm_network:
+        ipv4_address: 10.112.0.12
     ports:
       - 8090:8090
     volumes:
-      - ./beszel_data:/beszel_data
-      - ./beszel_socket:/beszel_socket
+      - /docker/beszel/beszel_data:/beszel_data
+      - /docker/beszel/beszel_socket:/beszel_socket
     # healthcheck:
     #   test: ['CMD', '/beszel', 'health', '--url', 'http://localhost:8090']
     #   interval: 120s
@@ -104,8 +107,8 @@ volumes:
     restart: unless-stopped
     network_mode: host
     volumes:
-      - ./beszel_agent_data:/var/lib/beszel-agent
-      - ./beszel_socket:/beszel_socket
+      - /docker/beszel/beszel_agent_data:/var/lib/beszel-agent
+      - /docker/beszel/beszel_socket:/beszel_socket
       - /var/run/docker.sock:/var/run/docker.sock:ro
     environment:
       LISTEN: /beszel_socket/beszel.sock
@@ -115,6 +118,9 @@ volumes:
     # healthcheck:
     #   test: ['CMD', '/agent', 'health']
     #   interval: 120s
+    networks:
+      npm_network:
+        ipv4_address: 10.112.0.13
 
 networks:
   npm_network:
