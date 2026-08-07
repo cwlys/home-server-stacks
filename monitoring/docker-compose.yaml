@@ -44,6 +44,7 @@ services:
       - TZ=Asia/Taipei
       - TUGTAINER_HOST_NAME=HomeSer_Tug
       - AGENT_SECRET=${SECRET}
+      - AGENT_ALLOW_ENDPOINTS=http://172.16.8.1:9413
       #- NOTIFICATION_URLS=tgram://8928802877:AAGwjf2ZX6gsAmn8HHUbX8pX8mnU4qtycOM/1161371954
     networks:
       npm_network:
